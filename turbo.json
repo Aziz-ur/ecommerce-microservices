@@ -11,8 +11,8 @@
     },
     "dev": {
       "cache": false,
-      "persistent": true,
-      "dependsOn": ["db:up"]
+      "persistent": true
+      // "dependsOn": ["db:up"]
     },
     "start": {
       "dependsOn": ["build"],
@@ -37,7 +37,8 @@
       "outputs": ["coverage/**"]
     },
     "test:e2e": {
-      "dependsOn": ["^build", "db:up"],
+      "dependsOn": ["^build"],
+      // "dependsOn": ["^build", "db:up"],
       "cache": false,
       "outputs": ["coverage/**"]
     },
