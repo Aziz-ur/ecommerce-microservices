@@ -1,0 +1,209 @@
+version: '3.8'
+
+# 🛠️ DEVELOPMENT OVERRIDES
+# This file is automatically merged with docker-compose.yml in development
+# Add your microservices here when you create them
+
+services:
+  # 👤 Auth Service (when you create it)
+  auth:
+    build:
+      context: .
+      dockerfile: apps/auth/Dockerfile
+    container_name: ecommerce-auth
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://auth_user:auth_pass123@postgres:5432/auth_db
+      - REDIS_URL=redis://redis:6379
+      - PORT=3000
+    ports:
+      - '3001:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.auth.rule=Host(`localhost`) && PathPrefix(`/api/auth`)'
+      - 'traefik.http.services.auth.loadbalancer.server.port=3000'
+    volumes:
+      - ./apps/auth:/app
+      - /app/node_modules
+    networks:
+      - ecommerce-network
+    profiles: ['services']
+
+  # 🛍️ Catalog Service (when you create it)
+  catalog:
+    build:
+      context: .
+      dockerfile: apps/catalog/Dockerfile
+    container_name: ecommerce-catalog
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://catalog_user:catalog_pass123@postgres:5432/catalog_db
+      - MONGODB_URL=mongodb://mongo:password@mongodb:27017/catalog_db
+      - REDIS_URL=redis://redis:6379
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - KAFKA_BROKERS=kafka:9092
+      - PORT=3000
+    ports:
+      - '3002:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      mongodb:
+        condition: service_started
+      elasticsearch:
+        condition: service_started
+      kafka:
+        condition: service_started
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.catalog.rule=Host(`localhost`) && PathPrefix(`/api/catalog`)'
+      - 'traefik.http.services.catalog.loadbalancer.server.port=3000'
+    volumes:
+      - ./apps/catalog:/app
+      - /app/node_modules
+    networks:
+      - ecommerce-network
+    profiles: ['services']
+
+  # 📦 Orders Service (when you create it)
+  orders:
+    build:
+      context: .
+      dockerfile: apps/orders/Dockerfile
+    container_name: ecommerce-orders
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://orders_user:orders_pass123@postgres:5432/orders_db
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BROKERS=kafka:9092
+      - PORT=3000
+    ports:
+      - '3003:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.orders.rule=Host(`localhost`) && PathPrefix(`/api/orders`)'
+      - 'traefik.http.services.orders.loadbalancer.server.port=3000'
+    volumes:
+      - ./apps/orders:/app
+      - /app/node_modules
+    networks:
+      - ecommerce-network
+    profiles: ['services']
+
+  # 💳 Payments Service (when you create it)
+  payments:
+    build:
+      context: .
+      dockerfile: apps/payments/Dockerfile
+    container_name: ecommerce-payments
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://payments_user:payments_pass123@postgres:5432/payments_db
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BROKERS=kafka:9092
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - PORT=3000
+    ports:
+      - '3004:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.payments.rule=Host(`localhost`) && PathPrefix(`/api/payments`)'
+      - 'traefik.http.services.payments.loadbalancer.server.port=3000'
+    volumes:
+      - ./apps/payments:/app
+      - /app/node_modules
+    networks:
+      - ecommerce-network
+    profiles: ['services']
+
+  # 📊 Inventory Service (when you create it)
+  inventory:
+    build:
+      context: .
+      dockerfile: apps/inventory/Dockerfile
+    container_name: ecommerce-inventory
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://inventory_user:inventory_pass123@postgres:5432/inventory_db
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BROKERS=kafka:9092
+      - PORT=3000
+    ports:
+      - '3005:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.inventory.rule=Host(`localhost`) && PathPrefix(`/api/inventory`)'
+      - 'traefik.http.services.inventory.loadbalancer.server.port=3000'
+    volumes:
+      - ./apps/inventory:/app
+      - /app/node_modules
+    networks:
+      - ecommerce-network
+    profiles: ['services']
+
+  # 📧 Notifications Service (when you create it)
+  notifications:
+    build:
+      context: .
+      dockerfile: apps/notifications/Dockerfile
+    container_name: ecommerce-notifications
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://notifications_user:notifications_pass123@postgres:5432/notifications_db
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BROKERS=kafka:9092
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - PORT=3000
+    ports:
+      - '3006:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.notifications.rule=Host(`localhost`) && PathPrefix(`/api/notifications`)'
+      - 'traefik.http.services.notifications.loadbalancer.server.port=3000'
+    volumes:
+      - ./apps/notifications:/app
+      - /app/node_modules
+    networks:
+      - ecommerce-network
+    profiles: ['services']
+
+networks:
+  ecommerce-network:
+    external: true

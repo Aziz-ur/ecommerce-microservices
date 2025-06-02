@@ -1,21 +1,92 @@
 {
-  "$schema": "https://turborepo.com/schema.json",
+  "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalDependencies": ["**/.env*", "docker-compose*.yml", "k8s/**/*.y*ml"],
+  "globalEnv": ["NODE_ENV", "DATABASE_URL", "REDIS_URL", "KAFKA_BROKERS", "JWT_SECRET"],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**"]
-    },
-    "lint": {
-      "dependsOn": ["^lint"]
-    },
-    "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": ["^build", "type-check"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*", "prisma/schema.prisma"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "dev": {
       "cache": false,
+      "persistent": true,
+      "dependsOn": ["db:up"]
+    },
+    "start": {
+      "dependsOn": ["build"],
+      "cache": false,
       "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "inputs": ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}", ".eslintrc.js"]
+    },
+    "lint:fix": {
+      "dependsOn": ["^lint:fix"],
+      "cache": false
+    },
+    "type-check": {
+      "dependsOn": ["^type-check"],
+      "inputs": ["src/**/*.{ts,tsx}", "tsconfig.json"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}", "jest.config.js"],
+      "outputs": ["coverage/**"]
+    },
+    "test:e2e": {
+      "dependsOn": ["^build", "db:up"],
+      "cache": false,
+      "outputs": ["coverage/**"]
+    },
+    "test:watch": {
+      "cache": false,
+      "persistent": true
+    },
+    "db:generate": {
+      "inputs": ["prisma/schema.prisma", ".env*"],
+      "outputs": ["node_modules/.prisma/**"],
+      "cache": false
+    },
+    "db:migrate": {
+      "dependsOn": ["db:generate"],
+      "inputs": ["prisma/**", ".env*"],
+      "cache": false
+    },
+    "db:seed": {
+      "dependsOn": ["db:migrate"],
+      "cache": false
+    },
+    "db:up": {
+      "cache": false,
+      "persistent": true
+    },
+    "db:down": {
+      "cache": false
+    },
+    "docker:build": {
+      "dependsOn": ["build"],
+      "inputs": ["Dockerfile", "docker-compose*.yml"],
+      "cache": false
+    },
+    "docker:up": {
+      "dependsOn": ["docker:build"],
+      "cache": false,
+      "persistent": true
+    },
+    "k8s:deploy": {
+      "dependsOn": ["docker:build"],
+      "inputs": ["k8s/**/*.y*ml"],
+      "cache": false
+    },
+    "format": {
+      "inputs": ["**/*.{ts,tsx,json,md,y*ml}", ".prettierrc*"],
+      "cache": false
+    },
+    "clean": {
+      "cache": false
     }
   }
 }

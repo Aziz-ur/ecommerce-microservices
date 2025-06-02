@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+/build
+/dist
+/.next/
+/out/
+/coverage/
+
+# Environment variables
+.env*
+
+# Logs
+*.log
+
+# Cache directories
+.cache/
+.parcel-cache/
+.turbo/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Package manager lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
