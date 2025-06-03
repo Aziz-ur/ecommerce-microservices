@@ -7,12 +7,18 @@
   },
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
+  "editor.rulers": [100],
   "eslint.workingDirectories": ["apps/*", "packages/*"],
+  "eslint.validate": ["javascript", "typescript"],
   "typescript.preferences.importModuleSpecifier": "relative",
   "typescript.suggest.autoImports": true,
   "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.inlayHints.parameterNames.enabled": "literals",
+  "typescript.inlayHints.variableTypes.enabled": false,
   "files.associations": {
-    "*.json": "jsonc"
+    "*.json": "jsonc",
+    ".env*": "properties",
+    "*.prisma": "prisma"
   },
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
@@ -22,15 +28,30 @@
     "**/dist": true,
     "**/build": true,
     "**/coverage": true,
-    "**/.turbo": true
+    "**/.turbo": true,
+    "**/.next": true,
+    "**/out": true
   },
   "files.exclude": {
     "**/node_modules": true,
     "**/dist": true,
     "**/build": true,
-    "**/coverage": true
+    "**/coverage": true,
+    "**/.turbo": true,
+    "**/out": true
   },
   "git.autofetch": true,
   "git.enableSmartCommit": true,
-  "cSpell.words": ["ecommerce"]
+  "git.confirmSync": false,
+  "emmet.includeLanguages": {
+    "typescript": "html",
+    "javascript": "html"
+  },
+  "prisma.showPrismaDataPlatformNotification": false,
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
+  "[dockerfile]": {
+    "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+  }
 }

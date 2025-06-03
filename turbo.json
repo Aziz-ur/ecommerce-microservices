@@ -1,18 +1,24 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
-  "globalDependencies": ["**/.env*", "docker-compose*.yml", "k8s/**/*.y*ml"],
-  "globalEnv": ["NODE_ENV", "DATABASE_URL", "REDIS_URL", "KAFKA_BROKERS", "JWT_SECRET"],
+  "globalDependencies": ["**/.env*", "docker-compose*.yml", "k8s/**/*.y*ml", "package-lock.json"],
+  "globalEnv": ["NODE_ENV", "PORT", "DATABASE_URL", "REDIS_URL", "KAFKA_BROKERS", "JWT_SECRET"],
   "tasks": {
     "build": {
       "dependsOn": ["^build", "type-check"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*", "prisma/schema.prisma"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*",
+        "prisma/schema.prisma",
+        "src/**/*.{ts,tsx}",
+        "package.json",
+        "tsconfig*.json"
+      ],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "dev": {
       "cache": false,
       "persistent": true
-      // "dependsOn": ["db:up"]
     },
     "start": {
       "dependsOn": ["build"],
@@ -21,7 +27,7 @@
     },
     "lint": {
       "dependsOn": ["^lint"],
-      "inputs": ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}", ".eslintrc.js"]
+      "inputs": ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}", ".eslintrc*", "eslint.config.*"]
     },
     "lint:fix": {
       "dependsOn": ["^lint:fix"],
@@ -29,22 +35,27 @@
     },
     "type-check": {
       "dependsOn": ["^type-check"],
-      "inputs": ["src/**/*.{ts,tsx}", "tsconfig.json"]
+      "inputs": ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}", "tsconfig*.json", "package.json"]
     },
     "test": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}", "jest.config.js"],
-      "outputs": ["coverage/**"]
-    },
-    "test:e2e": {
-      "dependsOn": ["^build"],
-      // "dependsOn": ["^build", "db:up"],
-      "cache": false,
+      "inputs": ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}", "jest.config.*", "package.json"],
       "outputs": ["coverage/**"]
     },
     "test:watch": {
       "cache": false,
       "persistent": true
+    },
+    "test:e2e": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "inputs": ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}", "jest.config.*"],
+      "outputs": ["coverage/**"]
+    },
+    "test:cov": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}", "jest.config.*"],
+      "outputs": ["coverage/**"]
     },
     "db:generate": {
       "inputs": ["prisma/schema.prisma", ".env*"],
@@ -58,7 +69,12 @@
     },
     "db:seed": {
       "dependsOn": ["db:migrate"],
+      "inputs": ["prisma/seed.*", ".env*"],
       "cache": false
+    },
+    "db:studio": {
+      "cache": false,
+      "persistent": true
     },
     "db:up": {
       "cache": false,
@@ -67,13 +83,41 @@
     "db:down": {
       "cache": false
     },
+    "db:reset": {
+      "dependsOn": ["db:down"],
+      "cache": false
+    },
+    "install": {
+      "inputs": ["package.json", "package-lock.json"],
+      "cache": false
+    },
+    "clean": {
+      "cache": false
+    },
+    "format": {
+      "inputs": ["**/*.{ts,tsx,js,jsx,json,md,yml,yaml}", ".prettierrc*"],
+      "cache": false
+    },
+    "format:check": {
+      "inputs": ["**/*.{ts,tsx,js,jsx,json,md,yml,yaml}", ".prettierrc*"]
+    },
     "docker:build": {
       "dependsOn": ["build"],
-      "inputs": ["Dockerfile", "docker-compose*.yml"],
+      "inputs": ["Dockerfile", "docker-compose*.yml", "dist/**", "package.json"],
       "cache": false
     },
     "docker:up": {
       "dependsOn": ["docker:build"],
+      "cache": false,
+      "persistent": true
+    },
+    "docker:down": {
+      "cache": false
+    },
+    "docker:clean": {
+      "cache": false
+    },
+    "docker:logs": {
       "cache": false,
       "persistent": true
     },
@@ -82,11 +126,18 @@
       "inputs": ["k8s/**/*.y*ml"],
       "cache": false
     },
-    "format": {
-      "inputs": ["**/*.{ts,tsx,json,md,y*ml}", ".prettierrc*"],
+    "k8s:delete": {
       "cache": false
     },
-    "clean": {
+    "health:check": {
+      "cache": false
+    },
+    "ci": {
+      "dependsOn": ["lint", "type-check", "test"],
+      "inputs": ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}", "package.json", "tsconfig*.json"]
+    },
+    "ci:e2e": {
+      "dependsOn": ["build", "test:e2e"],
       "cache": false
     }
   }

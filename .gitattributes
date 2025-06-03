@@ -1,0 +1,19 @@
+# Default: LF line endings for all text files
+* text=auto eol=lf
+
+# Windows files (need CRLF)
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files (don't modify)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.exe binary
+
+# Shell scripts
+*.sh text eol=lf
