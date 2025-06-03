@@ -32,7 +32,7 @@ WORKDIR /app
 RUN npx turbo build --filter=auth
 
 # Production stage
-FROM node:18-alpine AS runner
+FROM node:18-alpine3.19 AS runner
 WORKDIR /app
 
 # Create non-root user for security
@@ -48,6 +48,8 @@ COPY --from=builder --chown=nestjs:nodejs /app/apps/auth/prisma ./prisma
 # Set production environment
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV LOG_LEVEL=info
+ENV APP_NAME=auth-service
 
 # Switch to non-root user
 USER nestjs

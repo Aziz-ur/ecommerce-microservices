@@ -44,6 +44,7 @@ module.exports = {
         'infra',
         'monitoring',
         'security',
+        'logger',
       ],
     ],
     'type-case': [2, 'always', 'lower-case'],

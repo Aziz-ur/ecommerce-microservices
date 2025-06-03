@@ -6,7 +6,6 @@
     "ms-vscode.vscode-json",
     "redhat.vscode-yaml",
     "ms-azuretools.vscode-docker",
-    "eamodio.gitlens",
     "christian-kohler.path-intellisense",
     "christian-kohler.npm-intellisense",
     "ms-vscode.vscode-jest",

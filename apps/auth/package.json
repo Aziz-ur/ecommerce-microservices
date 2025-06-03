@@ -1,34 +1,60 @@
 {
   "name": "@ecommerce/auth",
   "version": "1.0.0",
-  "description": "Authentication microservice for e-commerce platform",
-  "author": "Azizur Rahman Faisal",
   "private": true,
+  "description": "Authentication microservice for e-commerce platform",
   "license": "MIT",
+  "author": "Azizur Rahman Faisal",
   "scripts": {
     "build": "nest build",
-    "start": "nest start",
-    "dev": "nest start --watch",
-    "debug": "nest start --debug --watch",
-    "prod": "node dist/main",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
-    "type-check": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "ts-node prisma/seed.ts",
     "db:studio": "prisma studio --port 5556",
-    "db:up": "echo 'Database managed by root docker-compose'"
+    "db:up": "echo 'Database managed by root docker-compose'",
+    "debug": "nest start --debug --watch",
+    "dev": "nest start --watch",
+    "prod": "node dist/main",
+    "start": "nest start",
+    "test": "jest",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:watch": "jest --watch",
+    "type-check": "tsc --noEmit"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "moduleNameMapping": {
+      "^@/(.*)$": "<rootDir>/$1"
+    },
+    "rootDir": "src",
+    "testEnvironment": "node",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    }
   },
   "dependencies": {
+    "@ecommerce/logging": "file:../../packages/logging",
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "nestjs-pino": "^4.4.0",
+    "pino": "^9.7.0",
+    "pino-http": "^10.5.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
@@ -40,7 +66,9 @@
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.7",
     "@types/supertest": "^6.0.2",
+    "@types/uuid": "^10.0.0",
     "jest": "^29.7.0",
+    "pino-pretty": "^13.0.0",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
@@ -48,25 +76,5 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
-    "moduleNameMapping": {
-      "^@/(.*)$": "<rootDir>/$1"
-    }
   }
 }
