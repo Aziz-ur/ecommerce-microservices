@@ -1,12 +1,13 @@
-import { SetMetadata } from '@nestjs/common'
+import { SetMetadata } from "@nestjs/common";
 
-export const LOG_CONTEXT_KEY = 'logContext'
+export const LOG_CONTEXT_KEY = "logContext";
 
 export interface LogContextOptions {
-  operation?: string
-  sensitive?: boolean
-  includeArgs?: boolean
-  includeResult?: boolean
+  operation?: string;
+  sensitive?: boolean;
+  includeArgs?: boolean;
+  includeResult?: boolean;
 }
 
-export const LogContext = (options: LogContextOptions = {}) => SetMetadata(LOG_CONTEXT_KEY, options)
+export const LogContext = (options: LogContextOptions = {}) =>
+  SetMetadata(LOG_CONTEXT_KEY, options);
