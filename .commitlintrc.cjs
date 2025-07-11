@@ -5,46 +5,48 @@ module.exports = {
       2,
       "always",
       [
-        "build",
-        "chore",
-        "ci",
-        "docs",
-        "feat",
-        "fix",
-        "perf",
-        "refactor",
-        "revert",
-        "style",
-        "test",
-        "config",
-        "security",
+        "build", // Changes to build system or dependencies
+        "chore", // Maintenance tasks, no production code changes
+        "ci", // Continuous Integration pipeline changes
+        "cd", // Continuous Deployment changes
+        "docs", // Documentation updates
+        "feat", // New features
+        "fix", // Bug fixes
+        "perf", // Performance improvements
+        "refactor", // Code refactoring without feature changes
+        "cleanup", // Code and file cleanup, removing unused code/files
+        "revert", // Revert previous commits
+        "style", // Code style changes (formatting, etc.)
+        "test", // Test additions or modifications
+        "config", // Configuration file changes
+        "security", // Security-related changes
       ],
     ],
     "scope-enum": [
       2,
       "always",
       [
-        "auth",
-        "catalog",
-        "orders",
-        "payments",
-        "inventory",
-        "notifications",
-        "shared",
-        "config",
-        "docker",
-        "k8s",
-        "ci",
-        "deps",
-        "db",
-        "api",
-        "types",
-        "utils",
-        "scripts",
-        "infra",
-        "monitoring",
-        "security",
-        "logger",
+        "auth", // Authentication related changes
+        "catalog", // Product catalog features
+        "orders", // Order management system
+        "payments", // Payment processing
+        "inventory", // Inventory management
+        "notifications", // Notification system
+        "shared", // Shared utilities/components
+        "config", // Configuration changes
+        "docker", // Docker-related changes
+        "k8s", // Kubernetes configurations
+        "ci", // CI/CD specific changes
+        "deps", // Dependency updates
+        "db", // Database changes
+        "api", // API modifications
+        "types", // TypeScript type definitions
+        "utils", // Utility functions
+        "scripts", // Build/deployment scripts
+        "infra", // Infrastructure changes
+        "monitoring", // Monitoring and observability
+        "security", // Security implementations
+        "logger", // Logging functionality
       ],
     ],
     "type-case": [2, "always", "lower-case"],
@@ -61,3 +63,6 @@ module.exports = {
     "subject-max-length": [2, "always", 100],
   },
 };
+
+// Commit format: <type>(<scope>): <subject>
+// e.g. feat(auth): add JWT token validation middleware
