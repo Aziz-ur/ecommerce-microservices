@@ -3,15 +3,12 @@
     "esbenp.prettier-vscode",
     "dbaeumer.vscode-eslint",
     "ms-vscode.vscode-typescript-next",
-    "ms-vscode.vscode-json",
     "redhat.vscode-yaml",
     "ms-azuretools.vscode-docker",
     "christian-kohler.path-intellisense",
-    "christian-kohler.npm-intellisense",
     "ms-vscode.vscode-jest",
     "prisma.prisma",
-    "bradlc.vscode-tailwindcss",
-    "ms-vscode.vscode-typescript-next"
+    "bradlc.vscode-tailwindcss"
   ],
   "unwantedRecommendations": ["ms-vscode.vscode-typescript"]
 }
