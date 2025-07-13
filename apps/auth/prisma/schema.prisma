@@ -1,0 +1,540 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id       String  @id @default(cuid())
+  email    String  @unique
+  username String? @unique
+
+  passwordHash      String?
+  emailVerified     Boolean   @default(false)
+  emailVerifiedAt   DateTime?
+  passwordChangedAt DateTime?
+
+  accountStatus   AccountStatus @default(ACTIVE)
+  isActive        Boolean       @default(true)
+  isSuspended     Boolean       @default(false)
+  suspendedAt     DateTime?
+  suspendedReason String?
+  suspendedUntil  DateTime?
+
+  failedLoginAttempts Int       @default(0)
+  lastLoginAttempt    DateTime?
+  lastSuccessfulLogin DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  profile               UserProfile?
+  accountRoles          AccountRole[]
+  oauthProviders        OauthProvider[]
+  refreshTokens         RefreshToken[]
+  auditLogs             AuditLog[]
+  contextualPermissions ContextualPermission[]
+  resourcePermissions   ResourcePermission[]
+  policyApplications    PolicyApplication[]
+
+  @@index([email], name: "idx_account_email")
+  @@index([username], name: "idx_account_username")
+  @@index([accountStatus], name: "idx_account_status")
+  @@index([isActive], name: "idx_account_active")
+  @@index([createdAt], name: "idx_account_created")
+  @@map("accounts")
+}
+
+model UserProfile {
+  id        String @id @default(cuid())
+  accountId String @unique
+
+  firstName      String?
+  lastName       String?
+  fullName       String?
+  phoneNumber    String?
+  secondaryEmail String?
+
+  profileImageUrl String?
+  bio             String?
+  dateOfBirth     DateTime?
+  gender          String?
+
+  timezone      String? @default("UTC")
+  locale        String? @default("en")
+  theme         String? @default("light")
+  notifications Json?
+
+  addressLine1 String?
+  addressLine2 String?
+  city         String?
+  state        String?
+  postalCode   String?
+  country      String?
+
+  isComplete Boolean @default(false)
+  isPublic   Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: NoAction)
+
+  @@index([accountId], name: "idx_profile_account")
+  @@index([fullName], name: "idx_profile_name")
+  @@index([city, country], name: "idx_profile_location")
+  @@map("user_profiles")
+}
+
+model Role {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  displayName String
+  description String?
+
+  isSystem Boolean @default(false)
+  isActive Boolean @default(true)
+  level    Int     @default(0)
+  parentId String?
+  category String?
+  color    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accountRoles       AccountRole[]
+  rolePermissions    RolePermission[]
+  policyApplications PolicyApplication[]
+
+  @@index([name], name: "idx_role_name")
+  @@index([isSystem, isActive], name: "idx_role_system_active")
+  @@index([category], name: "idx_role_category")
+  @@map("roles")
+}
+
+model Permission {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  resource    String
+  action      String
+  description String?
+
+  category  String?
+  scope     String?
+  isActive  Boolean @default(true)
+  riskLevel String? @default("low")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rolePermissions RolePermission[]
+
+  @@unique([resource, action])
+  @@index([resource, action], name: "idx_permission_resource_action")
+  @@index([category], name: "idx_permission_category")
+  @@index([riskLevel], name: "idx_permission_risk")
+  @@map("permissions")
+}
+
+model AccountRole {
+  id        String @id @default(cuid())
+  accountId String
+  roleId    String
+
+  assignedBy String?
+  assignedAt DateTime  @default(now())
+  expiresAt  DateTime?
+  isActive   Boolean   @default(true)
+
+  auditMetadata Json?
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: NoAction)
+  role    Role    @relation(fields: [roleId], references: [id], onDelete: NoAction)
+
+  @@unique([accountId, roleId])
+  @@index([accountId], name: "idx_account_role_account")
+  @@index([roleId], name: "idx_account_role_role")
+  @@index([expiresAt], name: "idx_account_role_expires")
+  @@map("account_roles")
+}
+
+model RolePermission {
+  id           String @id @default(cuid())
+  roleId       String
+  permissionId String
+
+  grantedAt DateTime @default(now())
+  grantedBy String?
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: NoAction)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: NoAction)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId], name: "idx_role_permission_role")
+  @@index([permissionId], name: "idx_role_permission_permission")
+  @@map("role_permissions")
+}
+
+model ContextualPermission {
+  id           String   @id @default(cuid())
+  accountId    String
+  permission   String
+  resourceType String?
+  resourceId   String?
+  context      Json?
+  conditions   String[]
+
+  grantedBy String?
+  grantedAt DateTime  @default(now())
+  expiresAt DateTime?
+  isActive  Boolean   @default(true)
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: NoAction)
+
+  @@unique([accountId, permission, resourceType, resourceId])
+  @@index([accountId], name: "idx_contextual_account")
+  @@index([permission], name: "idx_contextual_permission")
+  @@index([resourceType, resourceId], name: "idx_contextual_resource")
+  @@map("contextual_permissions")
+}
+
+model ResourcePermission {
+  id           String   @id @default(cuid())
+  accountId    String
+  resourceType String
+  resourceId   String
+  permissions  String[]
+
+  grantedBy String?
+  grantedAt DateTime  @default(now())
+  expiresAt DateTime?
+  isActive  Boolean   @default(true)
+  metadata  Json?
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: NoAction)
+
+  @@unique([accountId, resourceType, resourceId])
+  @@index([accountId], name: "idx_resource_account")
+  @@index([resourceType, resourceId], name: "idx_resource_type_id")
+  @@map("resource_permissions")
+}
+
+model AccessPolicy {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  displayName String
+  description String?
+
+  rules    Json
+  priority Int     @default(0)
+  isActive Boolean @default(true)
+  category String?
+  version  String  @default("1.0")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+
+  policyApplications PolicyApplication[]
+
+  @@index([name], name: "idx_policy_name")
+  @@index([category, priority], name: "idx_policy_category_priority")
+  @@index([isActive], name: "idx_policy_active")
+  @@map("access_policies")
+}
+
+model PolicyApplication {
+  id        String  @id @default(cuid())
+  policyId  String
+  accountId String?
+  roleId    String?
+
+  appliedAt DateTime @default(now())
+  appliedBy String?
+  isActive  Boolean  @default(true)
+
+  policy  AccessPolicy @relation(fields: [policyId], references: [id], onDelete: NoAction)
+  account Account?     @relation(fields: [accountId], references: [id], onDelete: NoAction)
+  role    Role?        @relation(fields: [roleId], references: [id], onDelete: NoAction)
+
+  @@index([policyId], name: "idx_policy_app_policy")
+  @@index([accountId], name: "idx_policy_app_account")
+  @@index([roleId], name: "idx_policy_app_role")
+  @@map("policy_applications")
+}
+
+model OauthProvider {
+  id        String @id @default(cuid())
+  accountId String
+
+  provider         String
+  providerUserId   String
+  providerUsername String?
+  providerEmail    String?
+  providerVerified Boolean? @default(false)
+
+  accessTokenEncrypted  String?
+  refreshTokenEncrypted String?
+  tokenExpiresAt        DateTime?
+  profileData           Json?
+
+  connectedAt DateTime  @default(now())
+  lastUsedAt  DateTime?
+  isActive    Boolean   @default(true)
+
+  auditMetadata Json?
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: NoAction)
+
+  @@unique([provider, providerUserId])
+  @@index([accountId], name: "idx_oauth_account")
+  @@index([provider], name: "idx_oauth_provider")
+  @@index([providerEmail], name: "idx_oauth_email")
+  @@map("oauth_providers")
+}
+
+model RefreshToken {
+  id        String @id @default(cuid())
+  accountId String
+
+  tokenHash String    @unique
+  expiresAt DateTime
+  isRevoked Boolean   @default(false)
+  revokedAt DateTime?
+
+  deviceId   String?
+  deviceInfo String?
+  ipAddress  String?
+  userAgent  String?
+  tokenType  String? @default("refresh")
+  scopes     String?
+
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  auditMetadata Json?
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: NoAction)
+
+  @@index([accountId], name: "idx_token_account")
+  @@index([tokenHash], name: "idx_token_hash")
+  @@index([expiresAt], name: "idx_token_expires")
+  @@index([deviceId], name: "idx_token_device")
+  @@map("refresh_tokens")
+}
+
+model AuditLog {
+  id        String  @id @default(cuid())
+  accountId String?
+
+  action     AuditAction
+  resource   String?
+  resourceId String?
+
+  ipAddress String?
+  userAgent String?
+  endpoint  String?
+  method    String?
+
+  success       Boolean
+  failureReason String?
+  metadata      Json?
+  riskScore     Int?    @default(0)
+  riskReason    String?
+
+  createdAt DateTime @default(now())
+
+  auditMetadata Json?
+
+  account Account? @relation(fields: [accountId], references: [id], onDelete: NoAction)
+
+  @@index([accountId], name: "idx_audit_account")
+  @@index([action], name: "idx_audit_action")
+  @@index([createdAt], name: "idx_audit_created")
+  @@index([riskScore], name: "idx_audit_risk")
+  @@map("audit_logs")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  accountId String
+  tokenHash String    @unique
+  expiresAt DateTime
+  isUsed    Boolean   @default(false)
+  usedAt    DateTime?
+
+  ipAddress    String?
+  userAgent    String?
+  attemptCount Int     @default(1)
+
+  createdAt DateTime @default(now())
+
+  auditMetadata Json?
+
+  @@index([accountId], name: "idx_reset_account")
+  @@index([tokenHash], name: "idx_reset_token")
+  @@index([expiresAt], name: "idx_reset_expires")
+  @@map("password_reset_tokens")
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  accountId String
+  email     String
+  tokenHash String    @unique
+  expiresAt DateTime
+  isUsed    Boolean   @default(false)
+  usedAt    DateTime?
+
+  tokenType String  @default("email_verification")
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  auditMetadata Json?
+
+  @@index([accountId], name: "idx_verify_account")
+  @@index([email], name: "idx_verify_email")
+  @@index([tokenHash], name: "idx_verify_token")
+  @@index([expiresAt], name: "idx_verify_expires")
+  @@map("email_verification_tokens")
+}
+
+model UserSession {
+  id        String @id @default(cuid())
+  accountId String
+  sessionId String @unique
+
+  deviceId    String?
+  deviceInfo  String?
+  ipAddress   String?
+  userAgent   String?
+  sessionType String? @default("web")
+  appVersion  String?
+
+  isActive     Boolean  @default(true)
+  lastActivity DateTime @default(now())
+  expiresAt    DateTime
+  isSuspicious Boolean  @default(false)
+  riskScore    Int?     @default(0)
+
+  createdAt DateTime @default(now())
+
+  auditMetadata Json?
+
+  @@index([accountId], name: "idx_session_account")
+  @@index([sessionId], name: "idx_session_id")
+  @@index([isActive, expiresAt], name: "idx_session_active_expires")
+  @@index([lastActivity], name: "idx_session_activity")
+  @@map("user_sessions")
+}
+
+model SecurityEvent {
+  id        String  @id @default(cuid())
+  accountId String?
+
+  eventType   SecurityEventType
+  severity    SecuritySeverity  @default(LOW)
+  description String
+
+  ipAddress String?
+  userAgent String?
+  endpoint  String?
+
+  detectedAt DateTime @default(now())
+  detectedBy String?
+
+  isResolved Boolean   @default(false)
+  resolvedAt DateTime?
+  resolvedBy String?
+  response   String?
+
+  metadata Json?
+
+  auditMetadata Json?
+
+  @@index([accountId], name: "idx_security_account")
+  @@index([eventType, severity], name: "idx_security_type_severity")
+  @@index([detectedAt], name: "idx_security_detected")
+  @@index([isResolved], name: "idx_security_resolved")
+  @@map("security_events")
+}
+
+enum AccountStatus {
+  ACTIVE
+  PENDING_VERIFICATION
+  SUSPENDED
+  LOCKED
+  DELETED
+
+  @@map("account_status")
+}
+
+enum AuditAction {
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  LOGOUT
+  PASSWORD_CHANGED
+  PASSWORD_RESET_REQUESTED
+  PASSWORD_RESET_COMPLETED
+  EMAIL_VERIFIED
+  EMAIL_CHANGE_REQUESTED
+
+  ACCOUNT_CREATED
+  ACCOUNT_UPDATED
+  ACCOUNT_SUSPENDED
+  ACCOUNT_DELETED
+  ACCOUNT_REACTIVATED
+  PROFILE_UPDATED
+
+  ROLE_ASSIGNED
+  ROLE_REMOVED
+  PERMISSION_GRANTED
+  PERMISSION_REVOKED
+  CONTEXTUAL_PERMISSION_GRANTED
+  RESOURCE_ACCESS_GRANTED
+  POLICY_APPLIED
+
+  OAUTH_CONNECTED
+  OAUTH_DISCONNECTED
+  OAUTH_LOGIN
+
+  TOKEN_ISSUED
+  TOKEN_REFRESHED
+  TOKEN_REVOKED
+  SUSPICIOUS_ACTIVITY
+  RATE_LIMIT_EXCEEDED
+  SECURITY_ALERT
+
+  @@map("audit_action")
+}
+
+enum SecurityEventType {
+  BRUTE_FORCE_ATTEMPT
+  SUSPICIOUS_LOGIN
+  MULTIPLE_FAILED_LOGINS
+  UNUSUAL_LOCATION
+  TOKEN_ABUSE
+  RATE_LIMIT_EXCEEDED
+  MALICIOUS_REQUEST
+  DATA_BREACH_ATTEMPT
+  UNAUTHORIZED_ACCESS
+  PRIVILEGE_ESCALATION
+  POLICY_VIOLATION
+
+  @@map("security_event_type")
+}
+
+enum SecuritySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+
+  @@map("security_severity")
+}
